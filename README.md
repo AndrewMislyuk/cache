@@ -17,7 +17,7 @@ import "github.com/AndrewMislyuk/cache"
 Usage
 
 ```go
-c = cache.New()
+c := cache.New()
 c.Set("first", 6)
 c.Set("second", "March")
 c.Get("first")
