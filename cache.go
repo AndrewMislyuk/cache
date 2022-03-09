@@ -1,29 +1,48 @@
 package cache
 
-import "fmt"
+import (
+	"errors"
+	"sync"
+	"time"
+)
 
-type cache map[string]interface{}
+type cache struct {
+	storage map[string]interface{}
+	mu      *sync.Mutex
+}
 
 func New() cache {
-	return cache{}
+	return cache{
+		storage: make(map[string]interface{}),
+		mu:      new(sync.Mutex),
+	}
 }
 
-func (m cache) Set(key string, value interface{}) {
-	m[key] = value
+func (c cache) Set(key string, value interface{}, ttl time.Duration) {
+	c.storage[key] = value
+
+	go func() {
+		time.Sleep(ttl)
+		c.Delete(key)
+	}()
 }
 
-func (m cache) Get(key string) (value interface{}) {
-	value, ok := m[key]
+func (c cache) Get(key string) (value interface{}, err error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	value, ok := c.storage[key]
 	if !ok {
-		return fmt.Sprintln("Key doesn't exist")
+		return nil, errors.New("storage key not found")
 	}
 
-	return value
+	return value, nil
 }
 
-func (m cache) Delete(key string) {
-	_, ok := m[key]
+func (c cache) Delete(key string) {
+	_, ok := c.storage[key]
 	if ok {
-		delete(m, key)
+		c.mu.Lock()
+		delete(c.storage, key)
+		c.mu.Unlock()
 	}
 }
