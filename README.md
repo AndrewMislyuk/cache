@@ -18,8 +18,17 @@ Usage
 
 ```go
 c := cache.New()
-c.Set("first", 6)
-c.Set("second", "March")
-c.Get("first")
-c.Delete("second")
+c.Set("userId", 42, time.Second*2)
+userId, err := c.Get("userId")
+if err != nil { // err == nil
+	log.Fatal(err)
+}
+fmt.Println(userId) // Output: 42
+
+time.Sleep(time.Second * 3) // прошло 3 секунд
+
+_, err = c.Get("userId")
+if err != nil { // err != nil
+	log.Fatal(err) // сработает этот код
+}
 ```
